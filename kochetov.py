@@ -10,6 +10,8 @@ class KochetovDrone(Drone):
         self.asteroid_dict = self.get_list()
 
     def get_list(self):  # получаем список астероидов, отсортированных по расстояния от базы
+        # TODO - Комментировать функции лучше докстрингами
+        #  вот например https://programmera.ru/uroki-po-python/chto-takoe-docstring-v-python/
         a_dict = []
         for asteroid in self.asteroids:
             distance = asteroid.distance_to(self.my_mothership)

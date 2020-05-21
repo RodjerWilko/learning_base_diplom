@@ -14,3 +14,5 @@ if __name__ == '__main__':
     # d = VaderDrone()
     k = KochetovDrone()
     scene.go()
+
+# Первый этап: зачёт!
