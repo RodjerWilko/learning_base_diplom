@@ -1,52 +1,172 @@
 from astrobox.core import Drone
+from robogame_engine.geometry import Point
+
+index = 0
 
 
 class KochetovDrone(Drone):
-    asteroid_dict = []
+    asteroid_list = []
+    my_drones_list = []
+    asteroid_pick_list = []
+    center = ''
+
+    def __init__(self, **kwargs):
+        global index
+        self.distance = 0
+        self.empty_distance = 0
+        self.part_load_distance = 0
+        self.full_load_distance = 0
+        index += 1
+        self.index = index
+        self.type = ''
+        super().__init__(**kwargs)
 
     def on_born(self):
-        self.target = self._get_my_asteroid()
+        global index
+        self.asteroid_list = self.get_sorted_asteroid_list()
+        self.my_drones_list.append(self)
+        x = (self.asteroid_list[0][1].coord.x + self.my_mothership.coord.x) / 2
+        y = (self.asteroid_list[0][1].coord.y + self.my_mothership.coord.y) / 2
+        self.center = Point(x, y)
+        if self.index == 1:
+            self.type = 'transport'
+            self.target = self.center
+        else:
+            self.target = self.get_my_asteroid()
+            self.asteroid_pick_list.append(self.target)
+        self.stat(self.target)
         self.move_at(self.target)
-        self.asteroid_dict = self.get_list()
 
-    def get_list(self):  # получаем список астероидов, отсортированных по расстояния от базы
-        # TODO - Комментировать функции лучше докстрингами
-        #  вот например https://programmera.ru/uroki-po-python/chto-takoe-docstring-v-python/
-        a_dict = []
-        for asteroid in self.asteroids:
-            distance = asteroid.distance_to(self.my_mothership)
-            a_dict.append([distance, asteroid])
-            a_dict.sort(reverse=True)
-        return a_dict
+    def get_sorted_asteroid_list(self):
+        """"получаем список астероидов, отсортированных по расстояния от базы"""
+        a_list = []
+        for a in self.asteroids:
+            dist = a.distance_to(self.my_mothership)
+            a_list.append([dist, a])
+            a_list.sort(reverse=True)
+        return a_list
 
-    def _get_my_asteroid(self):
-        for asteroid in self.asteroid_dict:
+    def get_my_asteroid(self):
+        for asteroid in self.asteroid_list[::-1]:
             if asteroid[1].payload == 0:
                 continue
             else:
                 return asteroid[1]
 
+    def print_stat(self):
+        print(f'№: {self.index}, '
+              f'Вся дистанция: {int(self.distance)}, '
+              f'дальность полета не загруженными:'
+              f' {int((self.empty_distance / self.distance) * 100)} %, '
+              f'дальность полета загруженными полностью: '
+              f'{int((self.full_load_distance / self.distance) * 100)} %, '
+              f'дальность  полета загруженными не полностью: '
+              f'{int((self.part_load_distance / self.distance) * 100)} % ')
+
+    def on_stop_at_point(self, target):
+        if self.near(self.my_drones_list[0]):
+            self.unload_to(self.my_drones_list[0])
+        else:
+            self.stat(self.my_mothership)
+            self.move_at(self.my_mothership)
+
     def on_stop_at_asteroid(self, asteroid):
-        self.load_from(asteroid)
+        if asteroid.is_empty:
+            self.on_wake_up()
+        else:
+            self.load_from(asteroid)
 
     def on_load_complete(self):
         if self.is_full:
-            self.move_at(self.my_mothership)
+            if self.distance_to(self.my_mothership) > self.distance_to(self.center):
+                if self.my_drones_list[0].near(self.center):
+                    self.stat(self.center)
+                    self.move_at(self.center)
+                else:
+                    self.stat(self.my_mothership)
+                    self.move_at(self.my_mothership)
+            else:
+                self.stat(self.my_mothership)
+                self.move_at(self.my_mothership)
         else:
             self.on_wake_up()
 
     def on_stop_at_mothership(self, mothership):
+        if self.type == 'transport':
+            if self.payload == 0:
+                self.print_stat()
         self.unload_to(mothership)
 
     def on_unload_complete(self):
-        if self.target:
-            if self.target.payload == 0:
-                self.target = self._get_my_asteroid()
-            self.move_at(self.target)
+        if self.type == 'transport':  # если дрон транспорт
+            if not all(asteroid.is_empty for asteroid in self.asteroids):  # если не все астероиды пустые
+                for asteroid in self.asteroid_list:
+                    if not asteroid[1].is_empty:
+                        if self.distance_to(asteroid[1]) > self.distance_to(self.center):
+                            self.target = self.center
+                            self.stat(self.center)
+                            self.move_at(self.target)
+                            break
+                        else:
+                            self.target = asteroid[1]
+                            self.stat(asteroid[1])
+                            self.move_at(self.target)
+                            break
+                    else:
+                        continue
+            else:
+                self.print_stat()
+        else:
+            if self.payload == 0:
+                self.on_wake_up()
+            else:
+                if self.target.is_empty:
+                    self.on_wake_up()
+                else:
+                    self.stat(self.target)
+                    self.move_at(self.target)
+
+    def stat(self, target):
+        distance = self.distance_to(target)
+        self.distance += distance
+        if self.is_empty:
+            self.empty_distance += distance
+        elif self.is_full:
+            self.full_load_distance += distance
+        else:
+            self.part_load_distance += distance
+
+    def on_wake_up_transport(self):
+        if self.is_full:
+            self.stat(self.my_mothership)
+            self.move_at(self.my_mothership)
+        else:
+            if all(asteroid.is_empty for asteroid in self.asteroids):
+                self.stat(self.my_mothership)
+                self.move_at(self.my_mothership)
+            else:
+                pass
 
     def on_wake_up(self):
-        self.target = self._get_my_asteroid()
-        if self.target:
-            self.move_at(self.target)
+        if self.type == 'transport':
+            self.on_wake_up_transport()
         else:
-            self.move_at(self.my_mothership)
+            if self.target:
+                if self.target.is_empty:
+                    self.target = self.get_my_asteroid()
+                    if self.target:
+                        self.stat(self.target)
+                        self.move_at(self.target)
+                    else:
+                        self.print_stat()
+                else:
+                    self.stat(self.target)
+                    self.move_at(self.target)
+            else:
+                self.target = self.get_my_asteroid()
+                if self.target:
+                    self.stat(self.target)
+                    self.move_at(self.target)
+                else:
+                    self.stat(self.my_mothership)
+                    self.move_at(self.my_mothership)
