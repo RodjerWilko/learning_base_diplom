@@ -7,7 +7,6 @@ index = 0
 class KochetovDrone(Drone):
     asteroid_list = []
     my_drones_list = []
-    asteroid_pick_list = []
     center = ''
 
     def __init__(self, **kwargs):
@@ -33,7 +32,6 @@ class KochetovDrone(Drone):
             self.target = self.center
         else:
             self.target = self.get_my_asteroid()
-            self.asteroid_pick_list.append(self.target)
         self.stat(self.target)
         self.move_at(self.target)
 
@@ -42,16 +40,22 @@ class KochetovDrone(Drone):
         a_list = []
         for a in self.asteroids:
             dist = a.distance_to(self.my_mothership)
-            a_list.append([dist, a])
+            a_list.append([dist, a, 0])
             a_list.sort(reverse=True)
         return a_list
 
     def get_my_asteroid(self):
-        for asteroid in self.asteroid_list[::-1]:
+        for i, asteroid in enumerate(self.asteroid_list[::-1]):
             if asteroid[1].payload == 0:
                 continue
-            else:
+            elif i % 2 == 0 and self.index % 2 == 0:
                 return asteroid[1]
+            elif i % 2 == 0 and self.index % 2 != 0:
+                continue
+            elif i % 2 == 1 and self.index % 2 == 1:
+                return asteroid[1]
+            else:
+                continue
 
     def print_stat(self):
         print(f'№: {self.index}, '
@@ -78,10 +82,15 @@ class KochetovDrone(Drone):
 
     def on_load_complete(self):
         if self.is_full:
-            if self.distance_to(self.my_mothership) > self.distance_to(self.center):
-                if self.my_drones_list[0].near(self.center):
-                    self.stat(self.center)
-                    self.move_at(self.center)
+            if self.index == 4:
+                if self.distance_to(self.my_mothership) > self.distance_to(self.center):
+                    if self.my_drones_list[0].near(self.center):
+                        self.target = self.center
+                        self.stat(self.target)
+                        self.move_at(self.target)
+                    else:
+                        self.stat(self.my_mothership)
+                        self.move_at(self.my_mothership)
                 else:
                     self.stat(self.my_mothership)
                     self.move_at(self.my_mothership)
@@ -120,7 +129,9 @@ class KochetovDrone(Drone):
             if self.payload == 0:
                 self.on_wake_up()
             else:
-                if self.target.is_empty:
+                if self.target == self.center:
+                    self.on_wake_up()
+                elif self.target.is_empty:
                     self.on_wake_up()
                 else:
                     self.stat(self.target)
@@ -152,7 +163,14 @@ class KochetovDrone(Drone):
             self.on_wake_up_transport()
         else:
             if self.target:
-                if self.target.is_empty:
+                if self.target == self.center:
+                    self.target = self.get_my_asteroid()
+                    if self.target:
+                        self.stat(self.target)
+                        self.move_at(self.target)
+                    else:
+                        self.print_stat()
+                elif self.target.is_empty:
                     self.target = self.get_my_asteroid()
                     if self.target:
                         self.stat(self.target)
