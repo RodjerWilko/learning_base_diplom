@@ -78,29 +78,24 @@ class KochetovDrone(Drone):
     def on_unload_complete(self):
         self.get_target()
 
+    def if_target_or_not(self):
+        self.target = self.get_my_asteroid()
+        if self.target:
+            self.move_at(self.target)
+        else:
+            self.target = self.get_any_asteroid()
+            if self.target:
+                self.move_at(self.target)
+            else:
+                self.move_at(self.my_mothership)
+
     def get_target(self):
         if self.target:
             if self.target.is_empty:
-                self.target = self.get_my_asteroid()
-                if self.target:
-                    self.move_at(self.target)
-                else:
-                    self.target = self.get_any_asteroid()
-                    if self.target:
-                        self.move_at(self.target)
-                    else:
-                        self.move_at(self.my_mothership)
+                self.if_target_or_not()
             else:
                 if self.target.payload < 40:  # 15
-                    self.target = self.get_my_asteroid()
-                    if self.target:
-                        self.move_at(self.target)
-                    else:
-                        self.target = self.get_any_asteroid()
-                        if self.target:
-                            self.move_at(self.target)
-                        else:
-                            self.move_at(self.my_mothership)
+                    self.if_target_or_not()
                 else:
                     self.move_at(self.target)
         else:
