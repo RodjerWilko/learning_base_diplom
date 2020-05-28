@@ -1,5 +1,7 @@
 from astrobox.core import Drone
 
+# TODO - Связь с глобальной переменной нужно избегать.
+#  А что если надо две твоих команды друг против друга сделать?
 index = 0
 
 
@@ -54,6 +56,8 @@ class KochetovDrone(Drone):
     def on_stop_at_asteroid(self, asteroid):
         self.turn_to(self.my_mothership)
         if asteroid.is_empty:
+            # TODO - Не нужно вызывать события, кторые вызываются движком. Лучше вынести такой код в отдельный метод
+            #  и его вызывать в нужных местах
             self.on_wake_up()
         else:
             self.load_from(asteroid)
