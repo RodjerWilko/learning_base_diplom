@@ -1,19 +1,16 @@
 from astrobox.core import Drone
 
-# TODO - Связь с глобальной переменной нужно избегать.
-#  А что если надо две твоих команды друг против друга сделать?
-index = 0
-
 
 class KochetovDrone(Drone):
     asteroid_list = []
+    lil_asteroid_list = []
     my_drones_list = []
     asteroid_pick_list = []
+    index = 0
 
     def __init__(self, **kwargs):
-        global index
-        index += 1
-        self.index = index
+        self.index += 1
+        self.index = self.index
         super().__init__(**kwargs)
 
     def on_born(self):
@@ -37,28 +34,28 @@ class KochetovDrone(Drone):
             if asteroid[1].is_empty:
                 continue
             elif asteroid[1] not in self.asteroid_pick_list:
-                if asteroid[1].payload > 35:  # 35
+                if asteroid[1].payload > 40:  # 35
                     self.asteroid_pick_list.append(asteroid[1])
                     return asteroid[1]
                 else:
                     continue
-            elif i == len(self.asteroid_list) - 1:
-                ast = self.get_any_asteroid()
-                return ast
+            else:
+                pass
 
     def get_any_asteroid(self):
         for asteroid in self.asteroid_list:
             if asteroid[1].is_empty:
                 continue
-            else:
+            elif asteroid[1] not in self.lil_asteroid_list:
+                self.lil_asteroid_list.append(asteroid[1])
                 return asteroid[1]
+            else:
+                pass
 
     def on_stop_at_asteroid(self, asteroid):
         self.turn_to(self.my_mothership)
         if asteroid.is_empty:
-            # TODO - Не нужно вызывать события, кторые вызываются движком. Лучше вынести такой код в отдельный метод
-            #  и его вызывать в нужных местах
-            self.on_wake_up()
+            self.get_target()
         else:
             self.load_from(asteroid)
 
@@ -69,7 +66,7 @@ class KochetovDrone(Drone):
             if self.fullness > 0.7:
                 self.move_at(self.my_mothership)
             else:
-                self.on_wake_up()
+                self.get_target()
 
     def on_stop_at_mothership(self, mothership):
         if self.target:
@@ -79,23 +76,31 @@ class KochetovDrone(Drone):
             self.unload_to(mothership)
 
     def on_unload_complete(self):
-        self.on_wake_up()
+        self.get_target()
 
-    def on_wake_up(self):
+    def get_target(self):
         if self.target:
             if self.target.is_empty:
                 self.target = self.get_my_asteroid()
                 if self.target:
                     self.move_at(self.target)
                 else:
-                    self.move_at(self.my_mothership)
-            else:
-                if self.target.payload < 15:  # 15
-                    self.target = self.get_my_asteroid()
+                    self.target = self.get_any_asteroid()
                     if self.target:
                         self.move_at(self.target)
                     else:
                         self.move_at(self.my_mothership)
+            else:
+                if self.target.payload < 40:  # 15
+                    self.target = self.get_my_asteroid()
+                    if self.target:
+                        self.move_at(self.target)
+                    else:
+                        self.target = self.get_any_asteroid()
+                        if self.target:
+                            self.move_at(self.target)
+                        else:
+                            self.move_at(self.my_mothership)
                 else:
                     self.move_at(self.target)
         else:
