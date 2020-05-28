@@ -10,7 +10,6 @@ class KochetovDrone(Drone):
 
     def __init__(self, **kwargs):
         self.index += 1
-        self.index = self.index
         super().__init__(**kwargs)
 
     def on_born(self):
