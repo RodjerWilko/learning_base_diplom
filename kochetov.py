@@ -38,9 +38,6 @@ class KochetovDrone(Drone):
                     return asteroid[1]
                 else:
                     continue
-            else:
-                # TODO - Эта ветка точно нужна
-                pass
 
     def get_any_asteroid(self):
         for asteroid in self.asteroid_list:
@@ -49,9 +46,6 @@ class KochetovDrone(Drone):
             elif asteroid[1] not in self.lil_asteroid_list:
                 self.lil_asteroid_list.append(asteroid[1])
                 return asteroid[1]
-            else:
-                # TODO - Эта ветка точно нужна
-                pass
 
     def on_stop_at_asteroid(self, asteroid):
         self.turn_to(self.my_mothership)
@@ -79,8 +73,7 @@ class KochetovDrone(Drone):
     def on_unload_complete(self):
         self.get_target()
 
-    # TODO - Нейминг! В имени метода должен быть глагол
-    def if_target_or_not(self):
+    def check_new_target(self):
         self.target = self.get_my_asteroid()
         if self.target:
             self.move_at(self.target)
@@ -94,12 +87,9 @@ class KochetovDrone(Drone):
     def get_target(self):
         if self.target:
             if self.target.is_empty:
-                self.if_target_or_not()
+                self.check_new_target()
             else:
                 if self.target.payload < 40:  # 15
-                    self.if_target_or_not()
+                    self.check_new_target()
                 else:
                     self.move_at(self.target)
-        else:
-            # TODO - Эта ветка точно нужна?
-            pass
