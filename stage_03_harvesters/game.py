@@ -26,3 +26,4 @@ if __name__ == '__main__':
     team_1 = [KochetovDrone2() for _ in range(NUMBER_OF_DRONES)]
     scene.go()
 
+# зачёт!
