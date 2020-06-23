@@ -143,6 +143,7 @@ class KochetovDrone(Drone):
 
         if self.enemies_list:
             if any(enemy[1] <= 590 for enemy in self.enemies_list):
+                # TODO - Для повышения читаемости кода, здесь нужно код ветки выделить в метод с красноречивым названием
                 for enemy in self.enemies_list:
                     if enemy[1] > 590 or self.check_drone_my_team_on_line_fire(enemy[0]):
                         continue
@@ -155,6 +156,7 @@ class KochetovDrone(Drone):
                         break
 
             elif any(base[1] <= 590 for base in self.enemies_motherships_list):
+                # TODO - Для повышения читаемости кода, здесь нужно код ветки выделить в метод с красноречивым названием
                 for base in self.enemies_motherships_list:
                     if base[1] > 590 or not base[0].is_alive:
                         continue
@@ -208,6 +210,7 @@ class KochetovDrone(Drone):
             self.turn_to(self.my_mothership)
             self.load_from(mothership)
         else:
+            # TODO - Для повышения читаемости кода, здесь нужно код ветки выделить в метод с красноречивым названием
             if self.type == 'defender' or self.type == 'base_killer':
                 self.move_at(self.target)
             elif self.type == 'harvester_first':
@@ -236,6 +239,7 @@ class KochetovDrone(Drone):
     def check_new_target(self):
         """Находим новую цель для сбора элириума"""
         if any(not aster[1].is_empty for aster in self.asteroid_list):
+            # TODO - Для повышения читаемости кода, здесь нужно код ветки выделить в метод с красноречивым названием
             for asteroid in self.asteroid_list:
                 if asteroid[1].is_empty:
                     continue
@@ -248,6 +252,7 @@ class KochetovDrone(Drone):
                     break
 
         elif any(not die_em[0].is_empty for die_em in self.get_enemies_motherships()):
+            # TODO - Для повышения читаемости кода, здесь нужно код ветки выделить в метод с красноречивым названием
             for die_em in self.get_enemies_motherships():
                 if die_em[0].is_empty:
                     continue
@@ -257,6 +262,7 @@ class KochetovDrone(Drone):
                     break
 
         elif any(not die_e[0].is_empty for die_e in self.get_die_enemies_list()):
+            # TODO - Для повышения читаемости кода, здесь нужно код ветки выделить в метод с красноречивым названием
             for die_e in self.get_die_enemies_list():
                 if die_e[0].is_empty:
                     continue
