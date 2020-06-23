@@ -4,6 +4,7 @@
 
 from astrobox.space_field import SpaceField
 from kochetov import KochetovDrone
+# from vader import VaderDrone
 
 if __name__ == '__main__':
     scene = SpaceField(
